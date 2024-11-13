@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RULE-BASE-CHATBOT-RESPONSE
+    </title>
+    <style>
+        body {
+            background: linear-gradient(to right, #ff6699, #ffcc66);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        .chatbot {
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            width: 350px;
+        }
+
+        .chatbot h1 {
+            color: #28a745;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .chat-window {
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 10px;
+            height: 250px;
+            overflow-y: auto;
+        }
+
+        .input-area {
+            display: flex;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .input-area input {
+            flex-grow: 1;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+            padding: 10px;
+            margin-right: 10px;
+        }
+
+        .input-area button {
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+
+        .input -area button:hover {
+            background-color: #25d366;
+        }
+
+        .header {
+            background-color: #075e54;
+            color: white;
+            padding: 10px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h2 {
+            margin: 0;
+        }
+
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header-button {
+            padding: 5px 10px;
+            background-color: #128c7e;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .header-button:hover {
+            background-color: #25d366;
+        }
+
+        .header-button {
+            width: 80px;
+            height: 30px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="chatbot">
+        <div class="header">
+            <h2>Chatbot</h2>
+            <div class="header-buttons">
+                <button class="header-button" onclick="showHistory()">History</button>
+                <button class="header-button" onclick="clearChat()">Clear All</button>
+            </div>
+        </div>
+        <div class="chat-window" id="chatbox"></div>
+        <div class="input-area">
+            <input id="userInput" type="text" placeholder="Type a message...">
+            <button onclick="sendMessage()">></button>
+        </div>
+    </div>
+
+    <script>
+        let botTypingTimeout;
+
+        // Function to send the message
+        function sendMessage() {
+            var userMessage = document.getElementById("userInput").value;
+            var chatbox = document.getElementById("chatbox");
+
+            if (userMessage.trim() !== "") {
+                chatbox.innerHTML += `<div class="message user-message"><b>You:</b> ${userMessage}</div><br>`;
+                chatbox.scrollTop = chatbox.scrollHeight;
+
+                // Clear input field
+                document.getElementById("userInput").value = '';
+
+                // Show typing indicator for the bot
+                showBotTyping();
+
+                // Simulate a delay for the bot's response (like it's thinking)
+                botTypingTimeout = setTimeout(() => {
+                    fetchBotReply(userMessage);
+                }, 1000);
+            }
+        }
+
+        // Function to simulate bot typing
+        function showBotTyping() {
+            var chatbox = document.getElementById("chatbox");
+            chatbox.innerHTML += `<div class="typing" id="typingIndicator">Bot is typing...</div>`;
+            chatbox.scrollTop = chatbox.scrollHeight;
+        }
+
+        // Function to remove the typing indicator and show bot reply
+        function fetchBotReply(userMessage) {
+            // Remove typing indicator
+            var typingIndicator = document.getElementById("typingIndicator");
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+
+            // Fetch the bot's reply
+            fetch("/get?msg=" + userMessage)
+                .then(response => response.text())
+                .then(botReply => {
+                    var chatbox = document.getElementById("chatbox");
+                    chatbox.innerHTML += `<div class="message bot-message"><b>Bot:</b> ${botReply}</div><br>`;
+                    chatbox.scrollTop = chatbox.scrollHeight;
+                });
+        }
+
+        // Check for the Enter key to send the message
+        function checkEnter(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+
+        // Function to clear the chat
+        function clearChat() {
+            document.getElementById("chatbox").innerHTML = '';
+        }
+
+        // Placeholder function for showing chat history
+        function showHistory() {
+            alert('Chat history feature coming soon!');
+        }
+    </script>
+</body>
+</html>
