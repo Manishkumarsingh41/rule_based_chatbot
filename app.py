@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import re
 import difflib
+import requests
 
 app = Flask(__name__)
 
@@ -59,7 +60,25 @@ def chatbot_response(user_input):
             elif closest_match[0] == "hobby":
                 return "It seems like you meant 'hobby'. What's your favorite hobby?"
         else:
-            return "I'm not sure I understand. Can you rephrase?"
+            # If no match is found, call the external API for a more complex response
+            return fetch_external_response(user_input)
+
+def fetch_external_response(user_message):
+    """Fetches response from the external API if user input doesn't match any predefined patterns."""
+    try:
+        response = requests.post(
+            "https://backend.buildpicoapps.com/aero/run/llm-api?pk=v1-Z0FBQUFBQm5IZkJDMlNyYUVUTjIyZVN3UWFNX3BFTU85SWpCM2NUMUk3T2dxejhLSzBhNWNMMXNzZlp3c09BSTR6YW1Sc1BmdGNTVk1GY0liT1RoWDZZX1lNZlZ0Z1dqd3c9PQ==",
+            json={"prompt": user_message},
+            headers={"Content-Type": "application/json"}
+        )
+        response_data = response.json()
+        if response.ok and response_data.get("status") == "success":
+            return response_data.get("text", "I'm not sure I understand. Can you rephrase?")
+        else:
+            return "There was an error processing your request. Please try again later."
+    except requests.RequestException as e:
+        print("Error:", e)
+        return "There was an error contacting the chatbot API. Please try again later."
 
 @app.route("/")
 def home():
@@ -68,7 +87,8 @@ def home():
 @app.route("/get", methods=["GET", "POST"])
 def get_bot_response():
     user_input = request.args.get('msg')
-    return chatbot_response(user_input)
+    bot_response = chatbot_response(user_input)
+    return jsonify(bot_response)
 
 if __name__ == "__main__":
     app.run(debug=True)
